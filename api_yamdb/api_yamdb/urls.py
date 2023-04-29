@@ -16,7 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
-from api_yamdb.utils import import_csv_to_database
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,5 +25,4 @@ urlpatterns = [
         name='redoc'
     ),
     path('api/', include('api.urls')),
-    path('import_csv/', import_csv_to_database)
 ]
