@@ -1,4 +1,5 @@
 from django.core.mail import EmailMessage
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -7,11 +8,85 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.pagination import PageNumberPagination
 
 from user.models import User
 
 from .permissions import IsAdmin
-from .serializers import SignUpSerializer, UserSerializer, TokenSerializer
+from .serializers import (SignUpSerializer,
+                          UserSerializer,
+                          TokenSerializer,
+                          TitleSerializer,
+                          GenreSerializer,
+                          CategorySerializer,
+                          ReviewSerializer,
+                          CommentSerializer)
+from reviews.models import Title, Genre, Category, Review
+from .mixins import CsvImportMixin
+from .permissions import IsAuthorModeratorAdminOrReadOnly
+
+
+class GetPostPatchDeleteViewSet(ModelViewSet):
+    http_method_names = ('get', 'post', 'patch', 'delete')
+
+
+class ReviewViewSet(GetPostPatchDeleteViewSet):
+    """Вьюсет для выполнения операций с объектами модели Review."""
+    serializer_class = ReviewSerializer
+    permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        serializer.save(author=self.request.user,
+                        title=get_object_or_404(Title, pk=title_id))
+
+
+class CommentViewSet(GetPostPatchDeleteViewSet):
+    """Вьюсет для выполнения операций с объектами модели Comment."""
+    serializer_class = CommentSerializer
+    permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, title=title_id, pk=review_id)
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        serializer.save(author=self.request.user,
+                        review=get_object_or_404(Review, pk=review_id,
+                                                 title=title_id))
+
+
+class TitleView(ModelViewSet, CsvImportMixin):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    pagination_class = PageNumberPagination
+    filename_to_import = 'titles.csv'
+    import_model = Title
+
+
+class GenreView(ModelViewSet, CsvImportMixin):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    pagination_class = PageNumberPagination
+    filename_to_import = 'genre.csv'
+    import_model = Genre
+
+
+class CategoryView(ModelViewSet, CsvImportMixin):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = PageNumberPagination
+    filename_to_import = 'category.csv'
+    import_model = Category
 
 
 class SignupView(APIView):
@@ -67,14 +142,15 @@ class TokenView(APIView):
 class UsersViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    pagination_class = PageNumberPagination
     permission_classes = (IsAdmin,)
     lookup_field = 'username'
     filter_backends = (SearchFilter, )
     search_fields = ('username', )
 
-    @action(methods=['GET', 'PATCH'], detail=False,
+    @action(methods=['PATCH', 'GET'], detail=False,
             permission_classes=(IsAuthenticated,))
-    def get_me_info(self, request):
+    def me(self, request):
         if request.method == 'PATCH':
             serializer = UserSerializer(
                 request.user, data=request.data, partial=True

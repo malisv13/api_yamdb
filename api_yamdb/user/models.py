@@ -3,6 +3,8 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db.models import CharField, EmailField, TextField, UUIDField
 
+from .validator import validate_username
+
 
 class User(AbstractUser):
     USER = 'user'
@@ -16,13 +18,24 @@ class User(AbstractUser):
     )
     username = CharField(
         'Имя пользователя',
+        validators=(validate_username,),
         max_length=150,
         unique=True,
         blank=False,
         null=False
     )
+    first_name = CharField(
+        'Имя',
+        max_length=150,
+        blank=True
+    )
+    last_name = CharField(
+        'Фамилия',
+        max_length=150,
+        blank=True
+    )
     email = EmailField(
-        'Адрес электронной почты',
+        'Почта пользователя',
         max_length=254,
         unique=True,
         blank=False,
@@ -30,7 +43,7 @@ class User(AbstractUser):
     )
     bio = TextField(
         'Биография',
-        blank=True,
+        blank=True
     )
     role = CharField(
         'Роль',
@@ -40,7 +53,7 @@ class User(AbstractUser):
         blank=True
     )
     confirmation_code = UUIDField(
-        'Код для получения/обновления токена',
+        'Код для токена',
         default=uuid.uuid4,
         editable=False,
         unique=True
