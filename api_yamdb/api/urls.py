@@ -1,5 +1,4 @@
 from django.urls import include, path
-from rest_framework.routers import SimpleRouter
 
 from .views import (TokenView,
                     SignupView,
@@ -8,11 +7,12 @@ from .views import (TokenView,
                     GenreView,
                     CategoryView,
                     CommentViewSet,
-                    ReviewViewSet)
+                    ReviewViewSet,
+                    NotPutRouter)
 
 app_name = 'api'
 
-router_v1 = SimpleRouter()
+router_v1 = NotPutRouter()
 
 router_v1.register(
     'users',

@@ -9,6 +9,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.routers import DefaultRouter
 
 from user.models import User
 
@@ -160,3 +161,12 @@ class UsersViewSet(ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class NotPutRouter(DefaultRouter):
+
+    def get_method_map(self, viewset, method_map):
+        bound_methods = super().get_method_map(viewset, method_map)
+        if 'put' in bound_methods.keys():
+            bound_methods.pop('put', None)
+        return bound_methods

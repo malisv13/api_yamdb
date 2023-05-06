@@ -75,7 +75,7 @@ class TitleSerializer(ModelSerializer):
 
 
 class ModeratorOrAdminSerializer(ModelSerializer):
-
+    
     class Meta:
         model = User
         fields = ('username', 'email', 'bio', 'role')
