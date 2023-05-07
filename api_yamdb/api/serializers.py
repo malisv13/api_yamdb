@@ -2,7 +2,8 @@ from rest_framework.serializers import (ModelSerializer,
                                         CharField,
                                         PrimaryKeyRelatedField,
                                         SlugRelatedField,
-                                        ValidationError)
+                                        ValidationError,
+                                        EmailField)
 
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
@@ -92,7 +93,14 @@ class UserSerializer(ModelSerializer):
 
 
 class SignUpSerializer(ModelSerializer):
-    
+    username = CharField(required=True, max_length=150)
+    email = EmailField(required=True, max_length=150)
+
+    def validate_username_and_email(self, value):
+        if User.objects.filter(email=value).exists():
+            if not User.objects.filter(username=value).exists():
+                raise ValidationError('Такой ник уже занят')
+            
     class Meta:
         model = User
         fields = ('email', 'username')

@@ -121,7 +121,7 @@ class SignupView(APIView):
 
 class TokenView(APIView):
 
-     def post(self, request):
+    def post(self, request):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
