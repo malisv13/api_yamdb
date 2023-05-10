@@ -5,6 +5,6 @@ from django.utils import timezone
 def year_validator(value):
     if value > timezone.now().year:
         raise ValidationError(
-            ('%(value) это неправильный год!'),
+            (f"{value} - неправильный год!"),
             params={'value': value},
         )

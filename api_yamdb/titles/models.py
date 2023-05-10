@@ -46,7 +46,7 @@ class Title(models.Model):
     name = models.CharField(
         max_length=256,
         verbose_name='Название')
-    year = models.IntegerField(
+    year = models.PositiveSmallIntegerField(
         validators=[year_validator],
         verbose_name='Год')
     category = models.ForeignKey(

@@ -25,7 +25,7 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='Произведение'
     )
-    score = models.IntegerField(
+    score = models.PositiveSmallIntegerField(
         verbose_name='Оценка',
         validators=[
             MinValueValidator(

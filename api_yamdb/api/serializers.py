@@ -57,9 +57,8 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'first_name', 'last_name', 'bio', 'role'
         )
 
-    def validate(self, data):
-        if (data.get('username') is not None
-                and data.get('username').lower() == 'me'):
+    def validate_username(self, data):
+        if (data is not None and data.lower() == 'me'):
             raise serializers.ValidationError(
                 'Username должен иметь отличное значение от "me"'
             )
@@ -74,15 +73,13 @@ class SignUpSerializer(serializers.ModelSerializer):
             code='invalid_username'
         )
     ],
-        max_length=150
+        max_length=150,
+        required=True
     )
 
     def validate_username(self, value):
-        if value is None:
-            return Response({'username': 'Username is required.'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        elif value.lower() == 'me':
-            raise serializers.ValidationError('Username cannot be "me"')
+        if value.lower() == 'me':
+            raise serializers.ValidationError('Username cannot be "me"') 
         return value
 
     class Meta:
@@ -91,8 +88,14 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 
 class JWTTokenSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150)
-    confirmation_code = serializers.CharField(max_length=50)
+    username = serializers.CharField(
+        max_length=150,
+        required=True
+    )
+    confirmation_code = serializers.CharField(
+        max_length=50,
+        required=True
+    )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -141,14 +144,12 @@ class ResponseSerializer(serializers.Serializer):
             code='invalid_username'
         )
     ],
-        max_length=150
+        max_length=150,
+        required=True
     )
     email = serializers.EmailField(max_length=254)
 
     def validate_username(self, value):
-        if value is None:
-            return Response({'username': 'Это поле не может быть пустым.'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        elif value.lower() == 'me':
+        if value.lower() == 'me':
             raise serializers.ValidationError('Username cannot be "me"')
         return value

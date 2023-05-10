@@ -1,6 +1,6 @@
 from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
                                    ListModelMixin)
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 
 class ModelMixinSet(CreateModelMixin, ListModelMixin,
@@ -8,5 +8,5 @@ class ModelMixinSet(CreateModelMixin, ListModelMixin,
     pass
 
 
-class CreateViewSet(CreateModelMixin, GenericViewSet):
-    pass
+class GetPostPatchDeleteMixinSet(ModelViewSet):
+    http_method_names = ('get', 'post', 'patch', 'delete')

@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from users.models import User
 from titles.models import Title, Genre, Category
 from reviews.models import Review
-from .mixins import ModelMixinSet
+from .mixins import ModelMixinSet, GetPostPatchDeleteMixinSet
 from .filters import TitleFilter
 from .permissions import (IsAdminOrReadOnlyPermission, OnlyAdmin,
                           IsAuthorAdminModeratorOrReadOnly)
@@ -85,8 +85,8 @@ def signup_function(request):
     if serializer.validated_data['email'] == user.email:
         serializer.save()
         generate_confirmation_code_and_send_email(
-            serializer.validated_data['username'],
-            serializer.validated_data['email']
+            user.username,
+            user.email
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(
@@ -146,11 +146,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GetPostPatchDeleteViewSet(viewsets.ModelViewSet):
-    http_method_names = ('get', 'post', 'patch', 'delete')
-
-
-class ReviewViewSet(GetPostPatchDeleteViewSet):
+class ReviewViewSet(GetPostPatchDeleteMixinSet):
     """Вьюсет для выполнения операций с объектами модели Review."""
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
@@ -166,7 +162,7 @@ class ReviewViewSet(GetPostPatchDeleteViewSet):
                         title=get_object_or_404(Title, pk=title_id))
 
 
-class CommentViewSet(GetPostPatchDeleteViewSet):
+class CommentViewSet(GetPostPatchDeleteMixinSet):
     """Вьюсет для выполнения операций с объектами модели Comment."""
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorAdminModeratorOrReadOnly,)
