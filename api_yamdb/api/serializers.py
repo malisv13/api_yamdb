@@ -1,7 +1,7 @@
 from rest_framework import serializers, status
 from django.core.validators import RegexValidator
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
+from django.core.exceptions import ObjectDoesNotExist
 
 from users.models import User
 from titles.models import Genre, Category, Title
@@ -76,6 +76,13 @@ class SignUpSerializer(serializers.ModelSerializer):
         max_length=150,
         required=True
     )
+
+    def create(self, validated_data):
+        try:
+            instance = User.objects.get(username=validated_data.get('username'))
+        except ObjectDoesNotExist:
+            return User.objects.create(**validated_data)
+        return instance
 
     def validate_username(self, value):
         if value.lower() == 'me':

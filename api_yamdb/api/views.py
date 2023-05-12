@@ -7,6 +7,7 @@ from rest_framework.filters import SearchFilter
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 
 from users.models import User
 from titles.models import Title, Genre, Category
@@ -66,33 +67,23 @@ class CategoryViewSet(ModelMixinSet):
 def signup_function(request):
     """Функция для регистрации нового пользователя"""
 
-    data = request.data
-    resp_ser = ResponseSerializer(data=data)
-    resp_ser.is_valid(raise_exception=True)
-    username = resp_ser.validated_data['username']
-    if not User.objects.filter(username=username).exists():
-        serializer = SignUpSerializer(data=data)
+    username = request.data.get('username')
+    email = request.data.get('email')
+    serializer = SignUpSerializer(data=request.data)
+
+    try:
+        user = User.objects.get(username=username, email=email)
+    except ObjectDoesNotExist:
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        generate_confirmation_code_and_send_email(
-            serializer.validated_data['username'],
-            serializer.validated_data['email']
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    user = get_object_or_404(User, username=username)
-    serializer = SignUpSerializer(user, data=request.data, partial=True)
-    serializer.is_valid(raise_exception=True)
-    if serializer.validated_data['email'] == user.email:
-        serializer.save()
-        generate_confirmation_code_and_send_email(
-            user.username,
-            user.email
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(
-        'Вы неверно указали почту!',
-        status=status.HTTP_400_BAD_REQUEST
+        user = serializer.save()
+
+    if user.email != request.data.get('email'):
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    generate_confirmation_code_and_send_email(
+        user
     )
+    return Response({'username': user.username, 'email': user.email}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
