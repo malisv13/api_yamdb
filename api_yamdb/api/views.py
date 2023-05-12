@@ -83,7 +83,13 @@ def signup_function(request):
     generate_confirmation_code_and_send_email(
         user
     )
-    return Response({'username': user.username, 'email': user.email}, status=status.HTTP_200_OK)
+    return Response(
+        {
+            'username': user.username,
+            'email': user.email
+        },
+        status=status.HTTP_200_OK
+    )
 
 
 @api_view(['POST'])

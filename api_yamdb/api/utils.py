@@ -2,7 +2,6 @@ import uuid
 
 from django.core.mail import send_mail
 
-from users.models import User
 from api_yamdb.settings import EMAIL_ADMIN
 
 
